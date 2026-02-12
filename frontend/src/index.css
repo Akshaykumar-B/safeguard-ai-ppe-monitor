@@ -1,0 +1,41 @@
+/* No tailwind directives needed — Tailwind is loaded via CDN in index.html */
+/* Only vanilla CSS overrides go here */
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes pulse-neon {
+
+    0%,
+    100% {
+        box-shadow: 0 0 15px rgba(0, 255, 157, 0.6), inset 0 0 8px rgba(0, 255, 157, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 25px rgba(0, 255, 157, 0.9), inset 0 0 15px rgba(0, 255, 157, 0.6);
+    }
+}
+
+/* Smooth page transitions */
+main {
+    animation: slideIn 0.3s ease-out;
+}

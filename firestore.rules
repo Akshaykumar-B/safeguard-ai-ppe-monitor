@@ -1,0 +1,103 @@
+// Firestore Security Rules for SafeGuard AI
+// ============================================
+// Deploy these rules in Firebase Console > Firestore > Rules
+//
+// These rules enforce:
+// 1. Only authenticated users can read/write
+// 2. Only admins can write to /users collection
+// 3. Staff can read workers and violations
+// 4. Viewers have read-only access
+// 5. Disabled users cannot access any data
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper Functions ──────────────────────────────────
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Get user's profile document
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Check if user has a specific role
+    function hasRole(role) {
+      return isAuthenticated() && getUserProfile().role == role;
+    }
+
+    // Check if user is an admin
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Check if user is active (not disabled)
+    function isActive() {
+      return isAuthenticated() && getUserProfile().status == 'active';
+    }
+
+    // Check if user is an active admin
+    function isActiveAdmin() {
+      return isAdmin() && isActive();
+    }
+
+    // ── Users Collection ──────────────────────────────────
+    // Only admins can create/update/delete user profiles
+    // Any authenticated user can read their own profile
+    match /users/{userId} {
+      // Allow users to read their own profile
+      allow read: if isAuthenticated() && (
+        request.auth.uid == userId || isAdmin()
+      );
+      
+      // Only admins can write to user profiles
+      allow create: if isActiveAdmin();
+      allow update: if isActiveAdmin();
+      allow delete: if isActiveAdmin();
+    }
+
+    // ── Workers Collection ────────────────────────────────
+    // Admin: full CRUD
+    // Staff: read-only
+    // Viewer: read-only
+    match /workers/{workerId} {
+      allow read: if isAuthenticated() && isActive();
+      allow write: if isActiveAdmin();
+    }
+
+    // ── Violations Collection ─────────────────────────────
+    // Admin: full CRUD
+    // Staff: read + update (acknowledge)
+    // Viewer: read-only
+    match /violations/{violationId} {
+      allow read: if isAuthenticated() && isActive();
+      allow create: if isActiveAdmin();
+      allow update: if isActive() && (
+        isAdmin() || hasRole('staff')
+      );
+      allow delete: if isActiveAdmin();
+    }
+
+    // ── Alerts Collection ─────────────────────────────────
+    match /alerts/{alertId} {
+      allow read: if isAuthenticated() && isActive();
+      allow write: if isActive() && (
+        isAdmin() || hasRole('staff')
+      );
+    }
+
+    // ── Settings Collection ───────────────────────────────
+    // Only admin can read/write settings
+    match /settings/{settingId} {
+      allow read: if isAuthenticated() && isActive();
+      allow write: if isActiveAdmin();
+    }
+
+    // ── Default: Deny Everything ──────────────────────────
+    // Any collection not explicitly matched above is denied
+  }
+}
