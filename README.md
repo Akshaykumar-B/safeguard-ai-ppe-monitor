@@ -406,9 +406,16 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 👤 Author
 
-**Akshaykumar B**
+<p align="center">
+  <img src="https://github.com/Akshaykumar-B.png" width="120" height="120" style="border-radius: 50%;" alt="Akshaykumar B" />
+</p>
 
-- GitHub: [@Akshaykumar-B](https://github.com/Akshaykumar-B)
+<p align="center">
+  <strong>Akshaykumar B</strong><br/>
+  <a href="https://github.com/Akshaykumar-B">
+    <img src="https://img.shields.io/badge/GitHub-Akshaykumar--B-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a>
+</p>
 
 ---
 
