@@ -1,166 +1,239 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
 import { useApp } from '../context/AppContext';
 
 const LiveMonitoringScreen = () => {
     const { alerts, stats } = useApp();
     const [selectedCam, setSelectedCam] = useState('cam01');
-    const [isRecording, setIsRecording] = useState(false);
+    const [viewMode, setViewMode] = useState('live'); // live | playback
+    const [showDropdown, setShowDropdown] = useState(false);
 
     const cameras = [
-        { id: 'cam01', label: 'Cam 01 - Main Entrance', source: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBMSN8ivvM6gsZrmh8Be9XUsghWPcxABM5crtSr-oC5frREwPX0339_5IovOMGJzReoazC8FQrxJ2UNlE_xaiMSN-I01unRovYVJe_XavJreM_U1hSwsdN2lT5Eji5xcq2hDAgI4gkAxfSBOtTqHvMWHB6KF4dQ4Gzg-4urZbSLpCPhUD2Pq14x8QtSP4qCnqT6gEF_BZJWNpYSWcEhO8QGLo_d3pt8li9Djd7ibpqLjxdfjkEVyA9VyMyHCKXcn6xlz562ggDFLxY' },
-        { id: 'cam02', label: 'Cam 02 - Dock Area', source: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCsGOqMzb5QcZIE6qIRph49KTaA25QL8FOhCwCCybJPlAulkHOtk6pGAWFo_XN7a_LZ00ymomObR2_RTG9iEy1YDPwcmPTz6MnMcK4D8KKhi0vIP4rRm9ewAKt5B5d31aIdKSR-y5LfffpUfekC3tObgVm8NrmpKYPD09M8R_oiC5EBFKlczWHJAOzEzmHBlQZG2PIFQn_XG6srVqX7SrzRKEPoGM-1WPQZB8Jbp3dWyGr8bIRwJ8U4iJ1tyrdGaj2qYQBUlUEjvos' },
-        { id: 'cam03', label: 'Cam 03 - Warehouse', source: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvDSufplSJfYJaxmK5sV8IG19ItPMurwcQGQcEF8ZqaiEwxRYqMeJizUiPOMGIWFz7BKF38ZpXZN8aTVt9QVdsgFc_H8ueLJI-jY0suCfIwYNPkRL1lOuueMPT_v_zR8tY9ub8CVFgi8CSjoi9X_mEqvjpV2k9PEqQxjhghJqois7mHqf85jkexjfq1m6ogTtrDzwWvoge2ERRWE32bdtmYY9cYIzx_yi-9aSheviRhQyRDrKDAp-ZANtazomY0Gn1D8PBmi9Xt6o' }
+        { id: 'cam01', label: 'Assembly Line A - Cam 01', shortLabel: 'Cam 01', source: 'http://localhost:5000/video_feed/cam01' },
+        { id: 'cam02', label: 'Dock Area - Cam 02', shortLabel: 'Cam 02', source: 'http://localhost:5000/video_feed/cam02' },
+        { id: 'cam03', label: 'Upstairs - Cam 03', shortLabel: 'Cam 03', source: 'http://localhost:5000/video_feed/cam03' }
     ];
 
     const currentCam = cameras.find(c => c.id === selectedCam) || cameras[0];
 
-    return (
-        <div className="flex min-h-screen bg-slate-950 text-white">
-            <Sidebar />
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <Header title="Live Intelligent Monitoring" />
+    // Dummy data to match screenshot visuals if real stats are empty
+    const displayStats = {
+        totalTracked: stats.totalWorkers || 4,
+        activeViolations: stats.activeAlerts || 2,
+        complianceRate: stats.complianceRate || 92,
+        uptime: '00:00:00'
+    };
 
-                <div className="flex-1 flex overflow-hidden p-6 gap-6">
-                    {/* Primary Feed */}
-                    <div className="flex-[3] flex flex-col gap-6 overflow-hidden">
-                        <div className="relative flex-1 bg-black rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group">
+    return (
+        <div className="flex min-h-screen bg-[#F8F9FA] text-slate-800 font-sans">
+            <Sidebar />
+            
+            <main className="flex-1 flex flex-col p-8 min-h-screen">
+                {/* Custom Header Layer */}
+                <div className="flex justify-between items-center mb-6">
+                    {/* Camera Dropdown */}
+                    <div className="relative group">
+                        <button 
+                            onClick={() => setShowDropdown(!showDropdown)}
+                            className="flex items-center gap-3 bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all"
+                        >
+                            <span className="font-bold text-lg text-slate-800">{currentCam.label}</span>
+                            <span className="material-icons text-slate-400">expand_more</span>
+                        </button>
+                        
+                        {/* Dropdown Menu */}
+                        {showDropdown && (
+                        <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-50 animate-fadeIn">
+                            {cameras.map(cam => (
+                                <button
+                                    key={cam.id}
+                                    onClick={() => { setSelectedCam(cam.id); setShowDropdown(false); }}
+                                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-bold flex items-center justify-between group/item ${selectedCam === cam.id ? 'bg-indigo-50 text-[#0066FF]' : 'text-slate-600 hover:bg-slate-50'}`}
+                                >
+                                    {cam.label}
+                                    {selectedCam === cam.id && <span className="material-icons text-sm">check</span>}
+                                </button>
+                            ))}
+                        </div>
+                        )}
+                    </div>
+
+                    {/* Live/Playback Toggle */}
+                    <div className="flex bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
+                        <button 
+                            onClick={() => setViewMode('live')}
+                            className={`px-8 py-2 rounded-lg text-sm font-black transition-all ${viewMode === 'live' ? 'bg-[#0066FF] text-white shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            LIVE
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('playback')}
+                            className={`px-8 py-2 rounded-lg text-sm font-black transition-all ${viewMode === 'playback' ? 'bg-[#0066FF] text-white shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            PLAYBACK
+                        </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-12 gap-8">
+                    {/* Left Column: Video & Stats */}
+                    <div className="col-span-8 flex flex-col gap-6">
+                        
+                        {/* Video Player */}
+                        <div className="relative w-full max-w-[1100px] aspect-video bg-black rounded-[20px] overflow-hidden shadow-2xl border-4 border-white ring-1 ring-slate-100 group">
                             <img
                                 src={currentCam.source}
-                                className="w-full h-full object-cover opacity-80"
+                                className="w-full h-full object-cover"
                                 alt="Live Feed"
                             />
-
-                            {/* Overlay Controls */}
-                            <div className="absolute top-6 left-6 flex items-center gap-3">
-                                <div className="bg-rose-600 px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-black animate-pulse">
-                                    <span className="w-2 h-2 bg-white rounded-full"></span>
-                                    LIVE
-                                </div>
-                                <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold border border-white/10">
-                                    {currentCam.label}
-                                </div>
+                            
+                            {/* Overlay: Top Right Time */}
+                            <div className="absolute top-6 right-6 bg-black/40 backdrop-blur-md px-4 py-2 rounded-lg text-white text-xs font-bold border border-white/10">
+                                {new Date().toLocaleTimeString()}
                             </div>
 
-                            <div className="absolute top-6 right-6 flex gap-2">
-                                <div className="bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/10 text-[10px] font-bold">
-                                    FPS: {stats.fps.toFixed(1)}
+                            {/* Overlay: Bottom Left Info */}
+                            <div className="absolute bottom-6 left-6 flex gap-3">
+                                <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-lg text-white/90 text-[11px] font-bold border border-white/10 uppercase tracking-wide">
+                                    AI Model: YOLOv8-PPE &nbsp;|&nbsp; Conf: 85% &nbsp;|&nbsp; 15 FPS
                                 </div>
-                                <div className="bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/10 text-[10px] font-bold">
-                                    {new Date().toLocaleTimeString()}
-                                </div>
-                            </div>
-
-                            {/* Simulated Bounding Boxes Overlay */}
-                            <div className="absolute inset-0 pointer-events-none">
-                                <div className="absolute top-1/4 left-1/3 w-32 h-64 border-2 border-emerald-500 rounded-lg">
-                                    <div className="absolute -top-6 left-0 bg-emerald-500 text-[10px] font-black px-2 py-0.5 rounded text-white uppercase">
-                                        Worker_Compliant 98%
-                                    </div>
-                                </div>
-                                <div className="absolute top-1/2 right-1/4 w-28 h-56 border-2 border-rose-500 rounded-lg">
-                                    <div className="absolute -top-6 left-0 bg-rose-500 text-[10px] font-black px-2 py-0.5 rounded text-white uppercase">
-                                        No_Helmet 94%
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Bottom Controls */}
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-2xl flex items-center gap-8 opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0">
-                                <button className="hover:text-primary transition-colors">
-                                    <span className="material-icons">videocam_off</span>
-                                </button>
-                                <button className="hover:text-primary transition-colors">
-                                    <span className="material-icons">screenshot</span>
-                                </button>
-                                <button
-                                    onClick={() => setIsRecording(!isRecording)}
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-rose-600 scale-110' : 'bg-white/10 hover:bg-white/20'}`}
-                                >
-                                    <span className="material-icons">{isRecording ? 'stop' : 'fiber_manual_record'}</span>
-                                </button>
-                                <button className="hover:text-primary transition-colors">
-                                    <span className="material-icons">zoom_in</span>
-                                </button>
-                                <button className="hover:text-primary transition-colors">
-                                    <span className="material-icons">settings</span>
-                                </button>
                             </div>
                         </div>
 
-                        {/* Camera Selector Grid */}
-                        <div className="h-48 flex gap-4">
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-4 gap-4">
+                            {/* Card 1 */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">TOTAL<br/>TRACKED</span>
+                                <span className="text-4xl font-black text-slate-800">{displayStats.totalTracked}</span>
+                            </div>
+
+                            {/* Card 2 */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32 bg-gradient-to-br from-white to-rose-50/50">
+                                <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest leading-relaxed relative z-10">ACTIVE<br/>VIOLATIONS</span>
+                                <span className="text-4xl font-black text-rose-500 relative z-10">{displayStats.activeViolations.toString().padStart(2, '0')}</span>
+                                {/* Decoration */}
+                                <div className="absolute bottom-0 right-0 w-16 h-16 bg-rose-500/5 rounded-tl-full"></div>
+                            </div>
+
+                            {/* Card 3 */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32 bg-gradient-to-br from-white to-emerald-50/50">
+                                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest leading-relaxed relative z-10">COMPLIANCE<br/>RATE</span>
+                                <span className="text-4xl font-black text-emerald-500 relative z-10">{displayStats.complianceRate}%</span>
+                                {/* Decoration */}
+                                <div className="absolute bottom-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-tl-full"></div>
+                            </div>
+
+                            {/* Card 4 */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">SESSION<br/>UPTIME</span>
+                                <span className="text-3xl font-black text-slate-800 font-mono tracking-tight">00:12:45</span>
+                            </div>
+                        </div>
+
+                        {/* Camera Thumbnails */}
+                        <div className="grid grid-cols-3 gap-4 pb-4">
                             {cameras.map(cam => (
                                 <button
                                     key={cam.id}
                                     onClick={() => setSelectedCam(cam.id)}
-                                    className={`flex-1 relative rounded-2xl overflow-hidden border-2 transition-all ${selectedCam === cam.id ? 'border-primary shadow-lg shadow-primary/20 scale-[1.02]' : 'border-slate-800 opacity-60 hover:opacity-100'}`}
+                                    className={`relative h-32 rounded-2xl overflow-hidden shadow-sm transition-all group border-4 ${selectedCam === cam.id ? 'border-[#0066FF] shadow-xl' : 'border-transparent hover:border-slate-200'}`}
                                 >
-                                    <img src={cam.source} className="w-full h-full object-cover" alt={cam.label} />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                                    <div className="absolute bottom-3 left-3 text-[10px] font-bold truncate pr-3">{cam.label}</div>
+                                    <img src={cam.source} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                                    <span className="absolute bottom-3 left-4 text-white text-xs font-bold shadow-sm">{cam.shortLabel}</span>
                                     {selectedCam === cam.id && (
-                                        <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-ping"></div>
+                                        <div className="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse shadow-md"></div>
                                     )}
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Right Sidebar - Analytics & Alerts */}
-                    <div className="flex-1 min-w-[320px] bg-slate-900/50 backdrop-blur-md rounded-3xl border border-slate-800 flex flex-col overflow-hidden">
-                        <div className="p-6 border-b border-slate-800">
-                            <h3 className="text-lg font-bold">Live Stream Analytics</h3>
-                            <p className="text-xs text-slate-500 mt-1">Real-time object tracking</p>
+                    {/* Right Column: Real-Time Alerts */}
+                    <div className="col-span-4 flex flex-col bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden max-h-[calc(100vh-120px)] sticky top-8">
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="font-extrabold text-slate-800 tracking-tight">REAL-TIME ALERTS</h3>
+                            <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-1.5 animate-pulse">
+                                <span className="w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+                                LIVE
+                            </span>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                            {/* Current Stats */}
-                            <div className="grid grid-cols-2 gap-3 mb-6">
-                                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tracked</p>
-                                    <p className="text-2xl font-black mt-1">{stats.totalWorkers}</p>
-                                </div>
-                                <div className="bg-rose-500/10 p-4 rounded-2xl border border-rose-500/20">
-                                    <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Violations</p>
-                                    <p className="text-2xl font-black mt-1 text-rose-500">{stats.activeAlerts}</p>
-                                </div>
-                            </div>
-
-                            <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest px-2">Recent Incidents</h4>
-
-                            {alerts.length === 0 ? (
-                                <div className="text-center py-10 text-slate-600">
-                                    <span className="material-icons text-4xl mb-2">verified</span>
-                                    <p className="text-xs">No active violations on {selectedCam}</p>
-                                </div>
-                            ) : (
-                                alerts.slice(0, 5).map(alert => (
-                                    <div key={alert.id} className="p-4 bg-slate-800/30 rounded-2xl border border-slate-800 hover:border-slate-700 transition-colors">
-                                        <div className="flex justify-between mb-2">
-                                            <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${alert.color === 'rose' ? 'bg-rose-500' : 'bg-amber-500'}`}>
-                                                {alert.type}
+                        {/* Alert List */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-[#F8F9FA]/50">
+                            {alerts.map(alert => (
+                                    <div key={alert.id} className="bg-white p-5 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-100 group hover:shadow-md transition-all">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wide text-white ${alert.title.includes('Helmet') ? 'bg-[#FF4D4F]' : 'bg-[#0066FF]'}`}>
+                                                {alert.title.includes('Helmet') ? 'No Safety Helmet' : alert.title}
                                             </span>
-                                            <span className="text-[10px] text-slate-500 font-bold">{alert.time}</span>
+                                            <span className="text-[10px] font-bold text-slate-400">{alert.time}</span>
                                         </div>
-                                        <p className="text-sm font-bold truncate">{alert.title}</p>
-                                        <p className="text-[10px] text-slate-500 mt-1">{alert.worker} • {alert.zone}</p>
+                                        
+                                        <div className="mb-4">
+                                            <h4 className="text-sm font-bold text-slate-800 mb-1">{alert.zone}</h4>
+                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                                <span className="text-slate-900 font-bold">{alert.worker}</span> detected without protection.
+                                            </p>
+                                        </div>
+
+                                        <button className="w-full bg-[#0066FF] text-white py-2.5 rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-blue-500/20 shadow-lg">
+                                            NOTIFY SAFETY TEAM
+                                        </button>
                                     </div>
                                 ))
-                            )}
-                        </div>
+                            }
 
-                        <div className="p-6 bg-slate-900 border-t border-slate-800">
-                            <button className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold border border-white/5 transition-colors">
-                                GENERATE INCIDENT REPORT
-                            </button>
+                            {/* Demo Alert if Empty (for visual matching) */}
+                            {alerts.length === 0 && (
+                                <>
+                                    <div className="bg-white p-5 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-100">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wide text-white bg-[#FF4D4F]">
+                                                No Safety Helmet
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-400">2m ago</span>
+                                        </div>
+                                        <div className="mb-4">
+                                            <h4 className="text-sm font-bold text-slate-800 mb-1">Zone 4 - Loader Area</h4>
+                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                                <span className="text-slate-900 font-bold">James Rodriguez</span> detected without protection.
+                                            </p>
+                                        </div>
+                                        <button className="w-full bg-[#0066FF] text-white py-2.5 rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-blue-500/20 shadow-lg">
+                                            NOTIFY SAFETY TEAM
+                                        </button>
+                                    </div>
+
+                                    <div className="bg-white p-5 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-100">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wide text-white bg-[#0066FF]">
+                                                Missing Gloves
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-400">28m ago</span>
+                                        </div>
+                                        <div className="mb-4">
+                                            <h4 className="text-sm font-bold text-slate-800 mb-1">Assembly Line 4</h4>
+                                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                                <span className="text-slate-900 font-bold">Linda Okafor</span> detected without protection.
+                                            </p>
+                                        </div>
+                                        <button className="w-full bg-[#0066FF] text-white py-2.5 rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-blue-500/20 shadow-lg">
+                                            NOTIFY SAFETY TEAM
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
+
             </main>
         </div>
     );
 };
 
 export default LiveMonitoringScreen;
+

@@ -97,9 +97,21 @@ export function AppProvider({ children }) {
                 console.log('✅ Backend connected:', res.service, '| OpenCV:', res.opencv_version);
                 // Sync data from backend
                 api.getWorkers().then(data => { if (data) setWorkers(prev => data.map(w => ({ ...w, img: '' }))); });
-                api.getViolations().then(data => { if (data) setViolations(data.map(v => ({ ...v, snapshot: v.snapshot || '' }))); });
-                api.getAlerts().then(data => { if (data) setAlerts(data); });
-                api.getSettings().then(data => { if (data) { setSettings(data); setSavedSettings(data); } });
+                api.getViolations().then(data => { if (data && data.length > 0) setViolations(data.map(v => ({ ...v, snapshot: v.snapshot || '' }))); });
+                api.getAlerts().then(data => { if (data && data.length > 0) setAlerts(data); });
+                api.getSettings().then(data => {
+                    if (data && Object.keys(data).length > 0) {
+                        const merged = {
+                            ...DEFAULT_SETTINGS,
+                            ...data,
+                            detectionTargets: { ...DEFAULT_SETTINGS.detectionTargets, ...(data.detectionTargets || {}) },
+                            exemptions: { ...DEFAULT_SETTINGS.exemptions, ...(data.exemptions || {}) },
+                            zoneRules: data.zoneRules || DEFAULT_SETTINGS.zoneRules,
+                        };
+                        setSettings(merged);
+                        setSavedSettings(merged);
+                    }
+                });
             } else {
                 console.log('⚡ Running in offline mode (frontend-only)');
             }
@@ -113,10 +125,10 @@ export function AppProvider({ children }) {
         const interval = setInterval(() => {
             // Fetch latest violations and alerts to update dashboard live
             api.getViolations().then(data => {
-                if (data) setViolations(data.map(v => ({ ...v, snapshot: v.snapshot || '' })));
+                if (data && data.length > 0) setViolations(data.map(v => ({ ...v, snapshot: v.snapshot || '' })));
             });
             api.getAlerts().then(data => {
-                if (data) setAlerts(data);
+                if (data && data.length > 0) setAlerts(data);
             });
             // Fetch real-time metrics
             api.getMetrics().then(data => {

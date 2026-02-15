@@ -5,11 +5,12 @@ import json
 import sqlite3
 import threading
 from datetime import datetime
-from flask import Flask, request, jsonify, g, send_from_directory
+from flask import Flask, request, jsonify, g, send_from_directory, Response
 from flask_cors import CORS
 
 from yolo_logic import YoloPPEDetector
 from firebase_auth import require_auth, require_role, init_firebase
+from video_processor import VideoProcessor
 
 # --- Initialize ---
 app = Flask(__name__)
@@ -25,9 +26,40 @@ os.makedirs(SNAPSHOT_FOLDER, exist_ok=True)
 
 detector = YoloPPEDetector(os.path.join(os.path.dirname(__file__), "yolov8n.pt"))
 
+# Warm up the model once on the main thread to prevent threading conflicts
+import numpy as np
+_dummy = np.zeros((64, 64, 3), dtype=np.uint8)
+detector.detect(_dummy)
+print("YOLO model warmed up successfully.")
+
+# Global lock so only one thread runs YOLO at a time
+detection_lock = threading.Lock()
+
+# --- Video Processors ---
+CAMERAS = {
+    "cam01": r"c:\Users\aksha\Downloads\open cv project\Assembly Line A-Cam 01.mp4",
+    "cam02": r"c:\Users\aksha\Downloads\open cv project\Dock Area-Cam 02.mp4",
+    "cam03": r"c:\Users\aksha\Downloads\open cv project\upstairs-Cam 03.mp4"
+}
+
+processors = {}
+
+# Start processors with a small delay between each to avoid race conditions
+import time as _time
+for cam_id, path in CAMERAS.items():
+    if os.path.exists(path):
+        print(f"Starting processor for {cam_id}...")
+        p = VideoProcessor(path, cam_id, DB_PATH, SNAPSHOT_FOLDER)
+        p.start(detector, detection_lock)
+        processors[cam_id] = p
+        _time.sleep(1)  # Stagger startup
+    else:
+        print(f"Warning: Video file not found: {path}")
+
 # --- DB Helpers ---
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -44,15 +76,39 @@ def health():
 @app.route("/api/metrics", methods=["GET"])
 def get_metrics():
     db = get_db()
-    row = db.execute("SELECT * FROM metrics_log ORDER BY created_at DESC LIMIT 1").fetchone()
+    # Get latest metric for EACH camera
+    rows = db.execute("""
+        SELECT camera_id, total_tracked, active_violations, compliance_rate, fps 
+        FROM metrics_log 
+        WHERE id IN (
+            SELECT MAX(id) 
+            FROM metrics_log 
+            GROUP BY camera_id
+        )
+    """).fetchall()
     db.close()
-    if row:
-        return jsonify(dict(row))
+    
+    if not rows:
+        return jsonify({
+            "total_tracked": 0,
+            "active_violations": 0,
+            "compliance_rate": 100.0,
+            "fps": 0.0
+        })
+
+    total_tracked = sum(r["total_tracked"] for r in rows)
+    total_violations = sum(r["active_violations"] for r in rows)
+    avg_fps = sum(r["fps"] for r in rows) / len(rows) if rows else 0
+    
+    compliance_rate = 100.0
+    if total_tracked > 0:
+        compliance_rate = ((total_tracked - total_violations) / total_tracked) * 100.0
+        
     return jsonify({
-        "total_tracked": 0,
-        "active_violations": 0,
-        "compliance_rate": 100.0,
-        "fps": 0.0
+        "total_tracked": total_tracked,
+        "active_violations": total_violations,
+        "compliance_rate": round(compliance_rate, 1),
+        "fps": round(avg_fps, 1)
     })
 
 @app.route("/api/workers", methods=["GET"])
@@ -173,6 +229,32 @@ def detect_ppe():
         "total_persons": len(detections)
     })
 
+@app.route('/snapshots/<path:filename>')
+def serve_snapshot(filename):
+    return send_from_directory(SNAPSHOT_FOLDER, filename)
+
+@app.route('/video_feed/<cam_id>')
+def video_feed(cam_id):
+    if cam_id not in processors:
+        return jsonify({"error": "Camera not found or inactive"}), 404
+        
+    def generate():
+        processor = processors[cam_id]
+        while True:
+            frame = processor.get_frame()
+            if frame is None:
+                time.sleep(0.01)
+                continue
+                
+            ret, buffer = cv2.imencode('.jpg', frame)
+            if not ret:
+                continue
+                
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 # --- Background Processing Simulation ---
 # In a real app, this would process the camera stream.
 # Here we simulate real-time metrics for the dashboard.
@@ -181,17 +263,42 @@ def background_metrics_updater():
         try:
             db = get_db()
             # Randomly fluctuate metrics slightly for a "live" feel
-            total = 10 + int(time.time() % 3)
-            violations = int(time.time() % 2)
-            rate = 100.0 if violations == 0 else 92.5
-            fps = 15.0 + (time.time() % 1)
             
-            db.execute(
-                "INSERT INTO metrics_log (camera_id, total_tracked, active_violations, compliance_rate, fps) VALUES ('cam01', ?, ?, ?, ?)",
-                (total, violations, rate, fps)
-            )
+            for cam_id in ["cam01", "cam02", "cam03"]:
+                proc = processors.get(cam_id)
+                if proc:
+                    stats = proc.get_stats()
+                    
+                    db.execute(
+                        "INSERT INTO metrics_log (camera_id, total_tracked, active_violations, compliance_rate, fps) VALUES (?, ?, ?, ?, ?)",
+                        (cam_id, stats["total_tracked"], stats["active_violations"], stats["compliance_rate"], stats["fps"])
+                    )
+
             # Keep log small
-            db.execute("DELETE FROM metrics_log WHERE id NOT IN (SELECT id FROM metrics_log ORDER BY created_at DESC LIMIT 10)")
+            db.execute("DELETE FROM metrics_log WHERE id NOT IN (SELECT id FROM metrics_log ORDER BY created_at DESC LIMIT 50)")
+            
+            # --- Cleanup Old Snapshots (Keep Max 10) ---
+            # Get IDs of old violations
+            old_violations = db.execute("SELECT id, snapshot FROM violations WHERE id NOT IN (SELECT id FROM violations ORDER BY created_at DESC LIMIT 10)").fetchall()
+            
+            if old_violations:
+                # Delete files
+                for vio in old_violations:
+                    try:
+                        # Extract filename from URL (e.g. http://localhost:5000/snapshots/vio_cam01_123.jpg)
+                        if vio["snapshot"] and "/snapshots/" in vio["snapshot"]:
+                            filename = vio["snapshot"].split("/snapshots/")[-1]
+                            filepath = os.path.join(SNAPSHOT_FOLDER, filename)
+                            if os.path.exists(filepath):
+                                os.remove(filepath)
+                                print(f"Deleted old snapshot: {filename}")
+                    except Exception as err:
+                        print(f"Error deleting snapshot file: {err}")
+                
+                # Delete DB rows
+                db.execute("DELETE FROM violations WHERE id NOT IN (SELECT id FROM violations ORDER BY created_at DESC LIMIT 10)")
+                print(f"Cleaned up {len(old_violations)} old violations")
+
             db.commit()
             db.close()
         except Exception as e:

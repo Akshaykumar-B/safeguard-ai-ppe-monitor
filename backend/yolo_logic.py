@@ -41,7 +41,8 @@ class YoloPPEDetector:
 
     def detect(self, frame, check_helmet=True, check_vest=True):
         """Detect people and then check for PPE in their ROI."""
-        results = self.model(frame, verbose=False)[0]
+        # Lower confidence to 0.15 to detect smaller/further objects
+        results = self.model(frame, verbose=False, conf=0.15)[0]
         detections = []
         
         for box in results.boxes:
@@ -90,3 +91,32 @@ class YoloPPEDetector:
             })
             
         return detections
+
+    def draw_annotations(self, frame, detections):
+        for d in detections:
+            x, y, w, h = d["bbox"]
+            
+            # Color
+            color = (0, 255, 0) # Green
+            if d["status"] == "Violation":
+                color = (0, 0, 255) # Red
+            
+            # Box
+            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+            
+            # Label
+            label = d["status"]
+            # Add details
+            details = []
+            if not d["helmet"]: details.append("No Helmet")
+            if not d["vest"]: details.append("No Vest")
+            
+            if details:
+                label += ": " + ", ".join(details)
+                
+            # Draw label background
+            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            cv2.rectangle(frame, (x, y - 20), (x + tw, y), color, -1)
+            cv2.putText(frame, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            
+        return frame

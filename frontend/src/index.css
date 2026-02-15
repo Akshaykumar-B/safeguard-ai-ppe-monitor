@@ -1,41 +1,214 @@
-/* No tailwind directives needed — Tailwind is loaded via CDN in index.html */
-/* Only vanilla CSS overrides go here */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    
+    --navy: #0f172a;
+    --cyan: #00eaff;
+    --cyan-dim: rgba(0, 234, 255, 0.7);
+    --cyan-faint: rgba(0, 234, 255, 0.2);
+    --electric: #0084ff;
+    --alert: #ff3333;
+    --text: #e2e8f0;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-[#0f172a] text-[#e2e8f0] antialiased;
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Typography */
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.font-rajdhani {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* Custom Animations */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes gridMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.3),
+                0 0 40px rgba(0, 234, 255, 0.2),
+                0 0 60px rgba(0, 234, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 234, 255, 0.5),
+                0 0 60px rgba(0, 234, 255, 0.3),
+                0 0 90px rgba(0, 234, 255, 0.2);
+  }
+  
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes detectionBox {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  20% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes beam-sweep {
+  0% {
+    transform: translateX(-100%) rotate(25deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(200%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes orb-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(0, 234, 255, 0.6));
+  }
+  50% {
+    transform: scale(1.02);
+    filter: drop-shadow(0 0 25px rgba(0, 234, 255, 0.8));
+  }
+}
+
+/* Transitions */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glassmorphism enhancement */
+.glassmorphism {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 234, 255, 0.2);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Input glow effect */
+.input-glow {
+  transition: all 0.3s ease;
+}
+
+.input-glow:focus {
+  box-shadow: 
+    0 0 0 2px rgba(0, 234, 255, 0.2),
+    0 0 20px rgba(0, 234, 255, 0.3),
+    0 0 40px rgba(0, 234, 255, 0.1);
+}
+
+/* Cyber button effect */
+.btn-cyber {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-cyber::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.btn-cyber:hover::before {
+  left: 100%;
+}
+
+/* Animations that were not in base tailwind but used in components */
+.animate-pulse-glow {
+    animation: pulse-glow 3s infinite;
+}
+
+.orb-float {
+    animation: orb-pulse 4s infinite ease-in-out, float 6s infinite ease-in-out;
+}
+
+/* Original animations preserved for compatibility if needed */
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-
-    to {
-        opacity: 0;
-    }
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
-@keyframes pulse-neon {
-
-    0%,
-    100% {
-        box-shadow: 0 0 15px rgba(0, 255, 157, 0.6), inset 0 0 8px rgba(0, 255, 157, 0.4);
-    }
-
-    50% {
-        box-shadow: 0 0 25px rgba(0, 255, 157, 0.9), inset 0 0 15px rgba(0, 255, 157, 0.6);
-    }
-}
-
-/* Smooth page transitions */
 main {
     animation: slideIn 0.3s ease-out;
 }

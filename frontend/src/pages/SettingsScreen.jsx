@@ -15,7 +15,7 @@ const SettingsScreen = () => {
             return;
         }
         const ppeList = newPPE.split(',').map(p => p.trim()).filter(Boolean);
-        const updated = [...settings.zoneRules, { zone: newZone.trim(), ppe: ppeList }];
+        const updated = [...(settings.zoneRules || []), { zone: newZone.trim(), ppe: ppeList }];
         updateSettings('zoneRules', updated);
         setNewZone('');
         setNewPPE('');
@@ -24,7 +24,7 @@ const SettingsScreen = () => {
     };
 
     const removeZoneRule = (idx) => {
-        const updated = settings.zoneRules.filter((_, i) => i !== idx);
+        const updated = (settings.zoneRules || []).filter((_, i) => i !== idx);
         updateSettings('zoneRules', updated);
         addToast('Zone rule removed', 'info');
     };
@@ -180,7 +180,7 @@ const SettingsScreen = () => {
                             <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                                 <h4 className="font-bold text-sm mb-4">Required Gear by Zone</h4>
                                 <div className="space-y-3">
-                                    {settings.zoneRules.map((rule, idx) => (
+                                    {(settings.zoneRules || []).map((rule, idx) => (
                                         <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg group">
                                             <span className="text-sm font-medium">{rule.zone}</span>
                                             <div className="flex items-center gap-1">
@@ -244,10 +244,10 @@ const SettingsScreen = () => {
                                             <p className="text-[10px] text-slate-500">Disable helmet check in marked walkways</p>
                                         </div>
                                         <button
-                                            onClick={() => updateSettings('exemptions', { ...settings.exemptions, visitorPaths: !settings.exemptions.visitorPaths })}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.exemptions.visitorPaths ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                            onClick={() => updateSettings('exemptions', { ...(settings.exemptions || {}), visitorPaths: !settings.exemptions?.visitorPaths })}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.exemptions?.visitorPaths ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}
                                         >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.exemptions.visitorPaths ? 'translate-x-6' : 'translate-x-1'}`}></span>
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.exemptions?.visitorPaths ? 'translate-x-6' : 'translate-x-1'}`}></span>
                                         </button>
                                     </div>
                                     <div className="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-800 rounded-lg">
@@ -256,10 +256,10 @@ const SettingsScreen = () => {
                                             <p className="text-[10px] text-slate-500">Allow vest removal during HVAC repairs</p>
                                         </div>
                                         <button
-                                            onClick={() => updateSettings('exemptions', { ...settings.exemptions, maintenanceWindows: !settings.exemptions.maintenanceWindows })}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.exemptions.maintenanceWindows ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                            onClick={() => updateSettings('exemptions', { ...(settings.exemptions || {}), maintenanceWindows: !settings.exemptions?.maintenanceWindows })}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.exemptions?.maintenanceWindows ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}
                                         >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.exemptions.maintenanceWindows ? 'translate-x-6' : 'translate-x-1'}`}></span>
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.exemptions?.maintenanceWindows ? 'translate-x-6' : 'translate-x-1'}`}></span>
                                         </button>
                                     </div>
                                 </div>

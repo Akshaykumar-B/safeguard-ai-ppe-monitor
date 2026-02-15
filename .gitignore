@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+
+# ML Model weights (large files)
+*.pt
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm
+
+# Backend uploads & snapshots
+backend/uploads/*
+backend/snapshots/*
+backend/results/*
+backend/face_data/embeddings/*
+backend/face_data/images/*
+!backend/uploads/.gitkeep
+!backend/snapshots/.gitkeep
+!backend/results/.gitkeep
+!backend/face_data/embeddings/.gitkeep
+!backend/face_data/images/.gitkeep
+
+# Pickle files
+*.pickle
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Vite build output
+frontend/dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Video files (too large for git)
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build output
+frontend/build_output.txt

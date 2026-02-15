@@ -127,12 +127,12 @@ const UserManagementScreen = () => {
 
     const roleBadge = (role) => {
         const colors = {
-            admin: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-            staff: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-            viewer: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+            admin: 'bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/25',
+            staff: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25',
+            viewer: 'bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow-lg shadow-slate-500/25',
         };
         return (
-            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase border ${colors[role] || colors.viewer}`}>
+            <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${colors[role] || colors.viewer}`}>
                 {role}
             </span>
         );
@@ -140,14 +140,17 @@ const UserManagementScreen = () => {
 
     const statusBadge = (status) => {
         return status === 'active' ? (
-            <span className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold">
-                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                Active
+            <span className="flex items-center gap-2 text-xs font-bold">
+                <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className="text-emerald-400">Active</span>
             </span>
         ) : (
-            <span className="flex items-center gap-1.5 text-rose-400 text-xs font-semibold">
-                <span className="w-2 h-2 bg-rose-400 rounded-full"></span>
-                Disabled
+            <span className="flex items-center gap-2 text-xs font-bold">
+                <span className="w-2.5 h-2.5 bg-rose-500 rounded-full"></span>
+                <span className="text-rose-400">Disabled</span>
             </span>
         );
     };
@@ -157,23 +160,23 @@ const UserManagementScreen = () => {
     const activeCount = users.filter(u => u.status === 'active').length;
 
     return (
-        <div className="flex h-screen bg-slate-950 text-white">
+        <div className="flex h-screen bg-[#0a0e1a] text-white">
             <Sidebar />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header />
-                <main className="flex-1 overflow-y-auto p-6" style={{ scrollbarWidth: 'thin', scrollbarColor: '#334155 transparent' }}>
+                <main className="flex-1 overflow-y-auto p-8" style={{ scrollbarWidth: 'thin', scrollbarColor: '#334155 transparent' }}>
 
                     {/* Header */}
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h1 className="text-2xl font-bold">User Management</h1>
-                            <p className="text-slate-400 text-sm mt-1">
+                            <h1 className="text-3xl font-black bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">User Management</h1>
+                            <p className="text-slate-400 text-sm mt-1.5">
                                 Invite users by email — they sign in with Google and get the assigned role.
                             </p>
                         </div>
                         <button
                             onClick={() => setShowInviteForm(!showInviteForm)}
-                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg shadow-purple-600/20"
+                            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:via-purple-500 hover:to-indigo-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2.5 transition-all shadow-xl shadow-purple-600/30 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <span className="material-icons text-lg">person_add</span>
                             Invite User
@@ -195,21 +198,23 @@ const UserManagementScreen = () => {
                     )}
 
                     {/* Stats */}
-                    <div className="grid grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-4 gap-5 mb-8">
                         {[
-                            { label: 'Total Users', value: users.length, icon: 'people', color: 'blue' },
-                            { label: 'Active', value: activeCount, icon: 'check_circle', color: 'emerald' },
-                            { label: 'Admins', value: adminCount, icon: 'shield', color: 'purple' },
-                            { label: 'Staff', value: `${staffCount}/${MAX_STAFF_ACCOUNTS}`, icon: 'badge', color: 'amber' },
+                            { label: 'Total Users', value: users.length, icon: 'people', gradient: 'from-blue-600 to-cyan-500', shadow: 'shadow-blue-600/30', iconBg: 'bg-white/20' },
+                            { label: 'Active', value: activeCount, icon: 'check_circle', gradient: 'from-emerald-500 to-teal-400', shadow: 'shadow-emerald-600/30', iconBg: 'bg-white/20' },
+                            { label: 'Admins', value: adminCount, icon: 'shield', gradient: 'from-purple-600 to-violet-500', shadow: 'shadow-purple-600/30', iconBg: 'bg-white/20' },
+                            { label: 'Staff', value: `${staffCount}/${MAX_STAFF_ACCOUNTS}`, icon: 'badge', gradient: 'from-amber-500 to-orange-500', shadow: 'shadow-amber-600/30', iconBg: 'bg-white/20' },
                         ].map((stat) => (
-                            <div key={stat.label} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 bg-${stat.color}-500/10 rounded-xl flex items-center justify-center`}>
-                                        <span className={`material-icons text-${stat.color}-400`}>{stat.icon}</span>
+                            <div key={stat.label} className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-5 shadow-xl ${stat.shadow} relative overflow-hidden group hover:scale-[1.02] transition-transform`}>
+                                <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                                <div className="absolute bottom-0 right-0 w-16 h-16 bg-white/5 rounded-tl-full"></div>
+                                <div className="relative z-10 flex items-center gap-4">
+                                    <div className={`w-12 h-12 ${stat.iconBg} backdrop-blur-sm rounded-2xl flex items-center justify-center`}>
+                                        <span className="material-icons text-white text-xl">{stat.icon}</span>
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold">{stat.value}</p>
-                                        <p className="text-xs text-slate-400">{stat.label}</p>
+                                        <p className="text-3xl font-black text-white">{stat.value}</p>
+                                        <p className="text-xs text-white/70 font-bold uppercase tracking-wider">{stat.label}</p>
                                     </div>
                                 </div>
                             </div>
@@ -218,43 +223,46 @@ const UserManagementScreen = () => {
 
                     {/* Invite Form */}
                     {showInviteForm && (
-                        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 mb-6" style={{ animation: 'slideIn 0.3s ease-out' }}>
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                <span className="material-icons text-purple-400">person_add</span>
+                        <div className="bg-gradient-to-br from-[#111827] to-[#0f172a] border border-purple-500/20 rounded-3xl p-7 mb-8 shadow-2xl shadow-purple-900/10 relative overflow-hidden" style={{ animation: 'slideIn 0.3s ease-out' }}>
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl"></div>
+                            <h3 className="text-lg font-black mb-2 flex items-center gap-2.5 relative z-10">
+                                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                    <span className="material-icons text-white text-sm">person_add</span>
+                                </div>
                                 Invite New User
                             </h3>
-                            <p className="text-slate-400 text-sm mb-4">
+                            <p className="text-slate-400 text-sm mb-5 relative z-10">
                                 Add their email and role. When they sign in with Google using this email, they'll get the assigned role automatically.
                             </p>
-                            <form onSubmit={handleInvite} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <form onSubmit={handleInvite} className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
                                 <div>
-                                    <label className="text-xs text-slate-400 font-bold uppercase mb-1 block">Name</label>
+                                    <label className="text-[10px] text-purple-300 font-black uppercase mb-1.5 block tracking-widest">Name</label>
                                     <input
                                         type="text"
                                         value={inviteName}
                                         onChange={(e) => setInviteName(e.target.value)}
                                         placeholder="John Doe"
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:outline-none transition-colors"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all placeholder:text-slate-600"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs text-slate-400 font-bold uppercase mb-1 block">Email</label>
+                                    <label className="text-[10px] text-purple-300 font-black uppercase mb-1.5 block tracking-widest">Email</label>
                                     <input
                                         type="email"
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         placeholder="john@example.com"
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:outline-none transition-colors"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all placeholder:text-slate-600"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs text-slate-400 font-bold uppercase mb-1 block">Role</label>
+                                    <label className="text-[10px] text-purple-300 font-black uppercase mb-1.5 block tracking-widest">Role</label>
                                     <select
                                         value={inviteRole}
                                         onChange={(e) => setInviteRole(e.target.value)}
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:outline-none transition-colors"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all"
                                     >
                                         <option value="viewer">Viewer — Read only</option>
                                         <option value="staff">Staff — Can acknowledge violations</option>
@@ -265,7 +273,7 @@ const UserManagementScreen = () => {
                                     <button
                                         type="submit"
                                         disabled={inviting}
-                                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30"
                                     >
                                         {inviting ? (
                                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -277,7 +285,7 @@ const UserManagementScreen = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowInviteForm(false)}
-                                        className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors"
+                                        className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                                     >
                                         <span className="material-icons text-sm">close</span>
                                     </button>
@@ -292,75 +300,84 @@ const UserManagementScreen = () => {
                             <div className="w-10 h-10 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
                         </div>
                     ) : (
-                        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
+                        <div className="bg-[#111827]/80 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-sm shadow-2xl">
                             <table className="w-full">
                                 <thead>
-                                    <tr className="border-b border-slate-800">
-                                        <th className="text-left px-6 py-4 text-xs text-slate-400 font-bold uppercase">User</th>
-                                        <th className="text-left px-6 py-4 text-xs text-slate-400 font-bold uppercase">Role</th>
-                                        <th className="text-left px-6 py-4 text-xs text-slate-400 font-bold uppercase">Status</th>
-                                        <th className="text-left px-6 py-4 text-xs text-slate-400 font-bold uppercase">Type</th>
-                                        <th className="text-right px-6 py-4 text-xs text-slate-400 font-bold uppercase">Actions</th>
+                                    <tr className="border-b border-white/5 bg-white/[0.02]">
+                                        <th className="text-left px-6 py-5 text-[10px] text-slate-400 font-black uppercase tracking-widest">User</th>
+                                        <th className="text-left px-6 py-5 text-[10px] text-slate-400 font-black uppercase tracking-widest">Role</th>
+                                        <th className="text-left px-6 py-5 text-[10px] text-slate-400 font-black uppercase tracking-widest">Status</th>
+                                        <th className="text-left px-6 py-5 text-[10px] text-slate-400 font-black uppercase tracking-widest">Type</th>
+                                        <th className="text-right px-6 py-5 text-[10px] text-slate-400 font-black uppercase tracking-widest">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {users.map((user) => {
+                                    {users.map((user, index) => {
                                         const isSelf = user.uid === currentUser?.uid;
+                                        const avatarGradients = [
+                                            'from-violet-500 to-purple-600',
+                                            'from-blue-500 to-cyan-500',
+                                            'from-emerald-500 to-teal-500',
+                                            'from-rose-500 to-pink-600',
+                                            'from-amber-500 to-orange-500',
+                                            'from-indigo-500 to-blue-600',
+                                        ];
+                                        const avatarGrad = avatarGradients[index % avatarGradients.length];
                                         return (
-                                            <tr key={user.uid} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                                            <tr key={user.uid} className="border-b border-white/5 hover:bg-white/[0.03] transition-all group">
+                                                <td className="px-6 py-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-11 h-11 bg-gradient-to-br ${avatarGrad} rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg`}>
                                                             {(user.name || 'U')[0].toUpperCase()}
                                                         </div>
                                                         <div>
-                                                            <p className="font-semibold text-white flex items-center gap-2">
+                                                            <p className="font-bold text-white flex items-center gap-2">
                                                                 {user.name}
-                                                                {isSelf && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-bold">YOU</span>}
+                                                                {isSelf && <span className="text-[9px] bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-2 py-0.5 rounded-full font-black tracking-wide shadow-sm">YOU</span>}
                                                             </p>
-                                                            <p className="text-xs text-slate-400">{user.email}</p>
+                                                            <p className="text-xs text-slate-500">{user.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">{roleBadge(user.role)}</td>
                                                 <td className="px-6 py-4">{statusBadge(user.status)}</td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 py-5">
                                                     {user.isInvite ? (
-                                                        <span className="text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 font-semibold">
+                                                        <span className="text-[10px] text-amber-300 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20 font-black uppercase tracking-wider">
                                                             Invited
                                                         </span>
                                                     ) : (
-                                                        <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20 font-semibold">
+                                                        <span className="text-[10px] text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 font-black uppercase tracking-wider">
                                                             Registered
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 py-5">
                                                     {!isSelf && (
-                                                        <div className="flex items-center gap-2 justify-end">
+                                                        <div className="flex items-center gap-1.5 justify-end">
                                                             <button
                                                                 onClick={() => { setEditUser(user); setEditRole(user.role); }}
-                                                                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                                                className="p-2.5 hover:bg-blue-500/10 rounded-xl transition-all group/btn"
                                                                 title="Change role"
                                                             >
-                                                                <span className="material-icons text-sm text-slate-400">edit</span>
+                                                                <span className="material-icons text-sm text-slate-500 group-hover/btn:text-blue-400 transition-colors">edit</span>
                                                             </button>
                                                             <button
                                                                 onClick={() => handleToggleStatus(user)}
-                                                                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                                                className="p-2.5 hover:bg-amber-500/10 rounded-xl transition-all group/btn"
                                                                 title={user.status === 'active' ? 'Disable' : 'Enable'}
                                                             >
-                                                                <span className={`material-icons text-sm ${user.status === 'active' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                                <span className={`material-icons text-sm transition-colors group-hover/btn:scale-110 ${user.status === 'active' ? 'text-slate-500 group-hover/btn:text-amber-400' : 'text-slate-500 group-hover/btn:text-emerald-400'}`}>
                                                                     {user.status === 'active' ? 'block' : 'check_circle'}
                                                                 </span>
                                                             </button>
                                                             {user.isInvite && (
                                                                 <button
                                                                     onClick={() => handleDelete(user)}
-                                                                    className="p-2 hover:bg-rose-900/30 rounded-lg transition-colors"
+                                                                    className="p-2.5 hover:bg-rose-500/10 rounded-xl transition-all group/btn"
                                                                     title="Delete invitation"
                                                                 >
-                                                                    <span className="material-icons text-sm text-rose-400">delete</span>
+                                                                    <span className="material-icons text-sm text-slate-500 group-hover/btn:text-rose-400 transition-colors">delete</span>
                                                                 </button>
                                                             )}
                                                         </div>
@@ -383,24 +400,27 @@ const UserManagementScreen = () => {
                     )}
 
                     {/* How It Works */}
-                    <div className="mt-6 bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-                        <h3 className="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">
-                            <span className="material-icons text-sm text-blue-400">info</span>
+                    <div className="mt-8 bg-gradient-to-br from-[#111827] to-[#0f172a] border border-white/5 rounded-3xl p-6 relative overflow-hidden">
+                        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl"></div>
+                        <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2.5 relative z-10">
+                            <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center">
+                                <span className="material-icons text-white text-xs">info</span>
+                            </div>
                             How Invitations Work
                         </h3>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-5 relative z-10">
                             {[
-                                { step: '1', title: 'You invite', desc: 'Add their email and choose a role (Viewer, Staff, or Admin)' },
-                                { step: '2', title: 'They sign in', desc: 'User signs in with Google using the same email address' },
-                                { step: '3', title: 'Role assigned', desc: 'They automatically get the role you assigned' },
+                                { step: '1', title: 'You invite', desc: 'Add their email and choose a role (Viewer, Staff, or Admin)', gradient: 'from-violet-500 to-purple-600' },
+                                { step: '2', title: 'They sign in', desc: 'User signs in with Google using the same email address', gradient: 'from-blue-500 to-cyan-500' },
+                                { step: '3', title: 'Role assigned', desc: 'They automatically get the role you assigned', gradient: 'from-emerald-500 to-teal-500' },
                             ].map((item) => (
-                                <div key={item.step} className="flex items-start gap-3">
-                                    <div className="w-7 h-7 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 font-bold text-sm flex-shrink-0">
+                                <div key={item.step} className="flex items-start gap-3.5 bg-white/[0.03] p-4 rounded-2xl border border-white/5">
+                                    <div className={`w-8 h-8 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-lg`}>
                                         {item.step}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-white">{item.title}</p>
-                                        <p className="text-xs text-slate-400">{item.desc}</p>
+                                        <p className="text-sm font-bold text-white">{item.title}</p>
+                                        <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
                                     </div>
                                 </div>
                             ))}
@@ -411,35 +431,38 @@ const UserManagementScreen = () => {
 
             {/* Edit Role Modal */}
             {editUser && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl" style={{ animation: 'slideIn 0.2s ease-out' }}>
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span className="material-icons text-purple-400">edit</span>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
+                    <div className="bg-gradient-to-br from-[#111827] to-[#0f172a] border border-white/10 rounded-3xl p-7 w-full max-w-md shadow-2xl relative overflow-hidden" style={{ animation: 'slideIn 0.2s ease-out' }}>
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl"></div>
+                        <h3 className="text-lg font-black text-white mb-5 flex items-center gap-3 relative z-10">
+                            <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                <span className="material-icons text-white text-sm">edit</span>
+                            </div>
                             Change Role
                         </h3>
-                        <div className="bg-slate-800/60 rounded-xl p-3 mb-4 border border-slate-700">
-                            <p className="font-semibold text-white">{editUser.name}</p>
-                            <p className="text-xs text-slate-400">{editUser.email}</p>
+                        <div className="bg-white/5 rounded-2xl p-4 mb-5 border border-white/5 relative z-10">
+                            <p className="font-bold text-white">{editUser.name}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">{editUser.email}</p>
                         </div>
                         <select
                             value={editRole}
                             onChange={(e) => setEditRole(e.target.value)}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white mb-4 focus:border-purple-500 focus:outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white mb-5 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all relative z-10"
                         >
                             <option value="viewer">Viewer — Read only</option>
                             <option value="staff">Staff — Can acknowledge violations</option>
                             <option value="admin">Admin — Full access</option>
                         </select>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 relative z-10">
                             <button
                                 onClick={handleRoleChange}
-                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-semibold transition-colors"
+                                className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-purple-600/30"
                             >
-                                Save
+                                Save Changes
                             </button>
                             <button
                                 onClick={() => setEditUser(null)}
-                                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-colors"
+                                className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold transition-all"
                             >
                                 Cancel
                             </button>

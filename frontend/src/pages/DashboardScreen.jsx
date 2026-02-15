@@ -115,12 +115,11 @@ const DashboardScreen = () => {
                                     {chartData.map((height, i) => (
                                         <div key={i} className="relative flex-1 group cursor-pointer" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
                                             <div
-                                                className={`w-full rounded-t-xl transition-all duration-500 hover:opacity-90 ${i === chartData.length - 1 ? 'bg-primary shadow-2xl shadow-primary/40' : 'bg-primary/20 hover:bg-primary/40'}`}
+                                                className={`relative w-full rounded-t-xl transition-all duration-500 hover:opacity-90 ${i === chartData.length - 1 ? 'bg-primary shadow-2xl shadow-primary/40' : 'bg-primary/20 hover:bg-primary/40'}`}
                                                 style={{ height: `${height}%`, transition: 'height 0.5s ease-out' }}
                                             >
-                                                <div className="absolute top-0 left-0 right-0 h-1 bg-primary rounded-full"></div>
                                                 {/* Tooltip */}
-                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg">
+                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg z-10">
                                                     {height}%
                                                 </div>
                                             </div>
